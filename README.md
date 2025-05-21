@@ -32,6 +32,7 @@ The basic Game of Life algorithm has been enhanced in multiple ways:
 ### Screenshot
 
 ![](./src/img/Screenshot-Life.png)
+
 A 15x15 grid with a glider and two flippers that will run continously
 
 ## My process
