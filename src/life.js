@@ -1,12 +1,13 @@
 'use strict';
-let cellsSave = [];
-let cellsNew = [];
-let cellsCRC = [];
-let maxCRC = 8;
-let stable = false;
-let startTime, generations;
-let speed = 10;
-let gridSize = 50;
+const maxSize = 200; // maximum grid size
+let gridSize = 50; // grid is square
+let cellsSave = new Int8Array(maxSize ** 2); // cell array for the current grid
+let cellsNew = new Int8Array(maxSize ** 2); // cell array to show the new state
+let cellsCRC = []; // hold CRCs for previous states to check for static patterns
+let maxCRC = 8; // how many past generations to watch for repetition
+let stable = false; // pattern is stable (or flipping between a few states)
+let startTime, generations; // used to compute refresh time
+let speed = 10; // pause time between generations
 let resetPending = false;
 let crcTable;
 
@@ -17,24 +18,32 @@ const setupButton = document.getElementById('setup');
 const speedInput = document.getElementById('speed');
 const gridSizeInput = document.getElementById('gridSize');
 const optionBlock = document.querySelector('.optionblock');
+const optionWrap = document.getElementById('wrap');
+const optionAuto = document.getElementById('auto');
 
-const getWrap = () => document.getElementById('wrap').checked;
-const getAuto = () => document.getElementById('auto').checked;
+const getWrap = () => optionWrap.checked;
+const getAuto = () => optionAuto.checked;
 
 const isAlive = (cell, neighbors) =>
   neighbors === 3 || (Boolean(cell) && neighbors === 2) ? 1 : 0;
 
 const generate = () => {
-  cellsSave = new Array(gridSize * gridSize).fill(0);
+  cellsSave.fill(0);
 };
 
 const regenerate = () => {
-  cellsNew = cellsSave.map((cell, i) =>
-    isAlive(cell, countNeighbors(cellsSave, i))
-  );
+  console.log(cellsSave);
+  for (let i = 0; i < gridSize ** 2; i++) {
+    let nc = countNeighbors(cellsSave, i);
+    let ia = isAlive(cellsSave[i], nc);
+    cellsNew[i] = ia;
+    // cellsNew[i] = isAlive(cellsSave[i], countNeighbors(cellsSave, i));
+  }
   updateLive();
-  cellsSave = cellsNew;
-
+  // cellsSave = cellsNew;
+  for (let i = 0; i < gridSize ** 2; i++) {
+    cellsSave[i] = cellsNew[i];
+  }
   let newCRC = crc32(cellsNew);
   stable = cellsCRC.indexOf(newCRC) > -1;
   if (cellsCRC.push(newCRC) > maxCRC) cellsCRC.shift();
@@ -67,16 +76,12 @@ const makeCRCTable = function () {
 const crc32 = function (cells) {
   let crc = 0 ^ -1;
 
-  for (let i = 0; i < cells.length; i++) {
+  for (let i = 0; i < gridSize ** 2; i++) {
     crc = (crc >>> 8) ^ crcTable[(crc ^ cells[i]) & 0xff];
   }
 
   return (crc ^ -1) >>> 0;
 };
-
-// const cellsEqual = (cells1, cells2) =>
-//   cells1.length === cells2.length &&
-//   cells1.every((val, index) => val === cells2[index]);
 
 const countNeighbors = (cells, cell) =>
   getWrap()
@@ -102,7 +107,6 @@ const countNeighborsWrap = (cells, cell) => {
   count += countCellWrap(cells, gridSize, row + 1, col - 1);
   count += countCellWrap(cells, gridSize, row + 1, col);
   count += countCellWrap(cells, gridSize, row + 1, col + 1);
-
   return count;
 };
 
@@ -146,8 +150,10 @@ const createElement = className => {
 const drawGrid = () => {
   const grid = document.getElementById('grid');
   const container = createElement('container');
-  let row;
-  cellsSave.forEach((cell, i) => {
+  let row, cell;
+  for (let i = 0; i < gridSize ** 2; i++) {
+    cell = cellsSave[i];
+    // cellsSave.forEach((cell, i) => {
     if (i % gridSize === 0) {
       row = createElement('row');
       container.appendChild(row);
@@ -155,18 +161,18 @@ const drawGrid = () => {
     const cellEl = createElement(`cell ${cell === 1 ? 'live' : ''}`);
     cellEl.id = new String(i);
     row.appendChild(cellEl);
-  });
+  }
 
   grid.innerHTML = '';
   grid.appendChild(container);
 };
 
 const updateLive = () => {
-  cellsNew.forEach((newCell, i) => {
-    if (newCell !== cellsSave[i]) {
+  for (let i = 0; i < gridSize ** 2; i++) {
+    if (cellsNew[i] !== cellsSave[i]) {
       document.getElementById(i).classList.toggle('live');
     }
-  });
+  }
 };
 
 const attachGridEventHandler = () => {
@@ -218,8 +224,6 @@ const getSpeed = () => {
   if (rawSpeed > 1000) rawSpeed = 1000;
   if (rawSpeed !== speed) {
     speed = rawSpeed;
-    start();
-    start();
   }
   if (speedInput.value != speed) {
     speedInput.value = speed;
