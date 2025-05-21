@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Game of Life</title>
+    <meta charset="utf-8" />
+    <link rel="apple-touch-icon" sizes="180x180" href="./img/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="./img/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./img/favicon-16x16.png">
+    <link rel="manifest" href="./img/site.webmanifest">
+    <link rel="stylesheet" href="index.css" />
+    <script defer src="life.js"></script>
+  </head>
+
+  <body>
+    <h1>Game of Life</h1>
+    <section id="controls">
+      <div class="buttonblock">
+        <button id="start">Start</button>
+        <button id="clear">Clear</button>
+        <button id="random">Random</button>
+      </div>
+      <div class="optionblock">
+        <div class="right"><span class="option"> Size (10-200): </span><input type="width" id='gridSize' step=10 style="width: 40px" value="50" /></div>
+        <div class="right"><span class="option"> Speed (ms): </span><input type="number" id='speed' step=10 style="width: 40px" value="10" /></div>
+      </div>
+      <div class="optionblock">
+        <div class="option"><input type=checkbox id="wrap"  checked><span class="option"> Wrap around the grid</span></input></div>
+        <div class="option"><input type=checkbox id="auto"  checked><span class="option"> Auto random when stable</span></input></div>
+      </div>
+    </section>
+    <section id="grid"></section>
+    <section>
+      <h2>Rules for Conway's Game of Life:</h2>
+      <ul>
+        <li>
+          Live cells with two or three neighbors continue to live.
+        </li>
+        <li>
+          Empty cells with three neighbors come to life.
+        </li>
+      </ul>
+      <p>
+        Click on a cell to toggle it between live and dead. <br />
+        The random button will fill the grid with 20% live cells. <br />
+        The wrap checkbox determines whether cells at the edge have neighbors on the other side of the grid. <br />
+        The auto checkbox will automatically do a random fill when the cells are stable or just flipping between two states.
+      </p>
+    </section>
+  </body>
+</html>
