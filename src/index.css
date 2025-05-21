@@ -56,13 +56,16 @@ h1 {
   /* Set max-height to something bigger than the box could ever be */
   max-height: 1000px;
   visibility: visible;
-  transition: visibility 0.5s, max-height 0.5s;
+  transition: visibility 1s, max-height 1s;
+  -webkit-transition: visibility 1s, max-height 1s;
+  -moz-transition: visibility 1s, max-height 1s;
+  -ms-transition: visibility 1s, max-height 1s;
+  -o-transition: visibility 1s, max-height 1s;
   overflow: hidden;
 }
 .hidden {
   max-height: 0;
   visibility: hidden;
-  transition: visibility 0.5s, max-height 0.5s;
 }
 
 .input {
