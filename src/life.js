@@ -13,8 +13,10 @@ let crcTable;
 const startButton = document.getElementById('start');
 const clearButton = document.getElementById('clear');
 const randomButton = document.getElementById('random');
+const setupButton = document.getElementById('setup');
 const speedInput = document.getElementById('speed');
 const gridSizeInput = document.getElementById('gridSize');
+const optionBlock = document.querySelector('.optionblock');
 
 const getWrap = () => document.getElementById('wrap').checked;
 const getAuto = () => document.getElementById('auto').checked;
@@ -256,6 +258,12 @@ const attachRandomEventHandler = () => {
   randomButton.addEventListener('click', random);
 };
 
+const attachSetupEventHandler = () => {
+  setupButton.addEventListener('click', () =>
+    optionBlock.classList.toggle('hidden')
+  );
+};
+
 const attachSpeedEventHandler = () => {
   speedInput.addEventListener('change', getSpeed);
   speedInput.addEventListener('onchange', getSpeed);
@@ -280,6 +288,7 @@ const init = () => {
   attachStartEventHandler();
   attachClearEventHandler();
   attachRandomEventHandler();
+  attachSetupEventHandler();
   attachSpeedEventHandler();
   attachSizeEventHandler();
 };

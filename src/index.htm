@@ -12,24 +12,42 @@
   </head>
 
   <body>
-    <h1>Game of Life</h1>
+    <header role="banner"><h1>Game of Life</h1></header>
+    
     <section id="controls">
-      <div class="buttonblock">
-        <button id="start">Start</button>
-        <button id="clear">Clear</button>
-        <button id="random">Random</button>
-      </div>
-      <div class="optionblock">
-        <div class="right"><span class="option"> Size (10-200): </span><input type="width" id='gridSize' step=10 style="width: 40px" value="50" /></div>
-        <div class="right"><span class="option"> Speed (ms): </span><input type="number" id='speed' step=10 style="width: 40px" value="10" /></div>
-      </div>
-      <div class="optionblock">
-        <div class="option"><input type=checkbox id="wrap"  checked><span class="option"> Wrap around the grid</span></input></div>
-        <div class="option"><input type=checkbox id="auto"  checked><span class="option"> Auto random when stable</span></input></div>
+      <div class="optionpane">
+        <div class="buttonblock">
+          <button id="start">Start</button>
+          <button id="clear">Clear</button>
+          <button id="random">Random</button>
+          <button id="setup">Setup</button>
+        </div>
+        <div class="optionblock hidden">
+          <div class="input">
+            <input type="width" id='gridSize' step=10 style="width: 40px" value="50" />
+            <label for="gridSize" class="option">Size (10-200)</label>
+          </div>
+          <div class="input">
+            <input type="number" id='speed' step=10 style="width: 40px" value="10" />
+            <label for="speed" class="option">Speed (ms)</label>
+          </div>
+          <div class="option">
+            <input type=checkbox id="wrap" checked aria-describedby="wrapTooltip">
+              <span class="option" role="tooltip" id="wrapTooltip"> Wrap around the grid</span>
+            </input>
+          </div>
+          <div class="option">
+            <input type=checkbox id="auto" checked aria-describedby="autoTooltip">
+              <span class="option" role="tooltip" id="autoTooltip"> Auto random when stable</span>
+            </input>
+          </div>
+        </div>
       </div>
     </section>
-    <section id="grid"></section>
-    <section>
+
+    <main role="main" id="grid"></main>
+
+    <footer role="contentinfo">
       <h2>Rules for Conway's Game of Life:</h2>
       <ul>
         <li>
@@ -45,6 +63,6 @@
         The wrap checkbox determines whether cells at the edge have neighbors on the other side of the grid. <br />
         The auto checkbox will automatically do a random fill when the cells are stable or just flipping between two states.
       </p>
-    </section>
+    </footer>
   </body>
 </html>

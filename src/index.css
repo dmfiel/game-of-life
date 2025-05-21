@@ -11,7 +11,10 @@ html {
 }
 
 body,
-section {
+section,
+header,
+main,
+footer {
   margin: 0 auto;
 }
 
@@ -22,6 +25,7 @@ body {
 }
 
 h1 {
+  font-size: 3rem;
   text-align: center;
   margin-bottom: 1rem;
   color: lightgray;
@@ -31,22 +35,39 @@ h1 {
 
 #controls {
   display: flex;
-  margin-bottom: 2rem;
+  flex-direction: column;
+  margin-bottom: 1.75rem;
 }
 
-.right {
-  text-align: right;
+.optionpane {
+  border: 1px solid white;
+  border-radius: 20px;
+  padding: 15px;
+  background-color: #333;
+  opacity: 80%;
 }
 
-.buttonblock,
+.buttonblock {
+  display: block;
+  margin-bottom: 0px;
+}
 .optionblock {
   display: block;
-  margin: 5px;
+  margin-top: 15px;
+}
+.hidden {
+  display: none;
+}
+
+.input {
+  text-align: left;
+  margin: 10px;
 }
 .option {
   color: lightgray;
   text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000,
     1px 1px 0 #000;
+  margin: 10px;
 }
 
 button {
@@ -55,7 +76,7 @@ button {
   cursor: pointer;
   font-size: 1rem;
   padding: 0.5em 1em;
-  margin: 5px;
+  margin: 7.5px;
   border-radius: 10px;
 }
 
