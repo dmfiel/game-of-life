@@ -1,11 +1,14 @@
 'use strict';
-let cellSave = [];
-let oldCells = [];
+let cellsSave = [];
+let cellsNew = [];
+let cellsCRC = [];
+let maxCRC = 8;
 let stable = false;
 let startTime, generations;
 let speed = 10;
 let gridSize = 50;
 let resetPending = false;
+let crcTable;
 
 const startButton = document.getElementById('start');
 const clearButton = document.getElementById('clear');
@@ -20,18 +23,21 @@ const isAlive = (cell, neighbors) =>
   neighbors === 3 || (Boolean(cell) && neighbors === 2) ? 1 : 0;
 
 const generate = () => {
-  cellSave = new Array(gridSize * gridSize).fill(0);
-  oldCells = new Array(gridSize * gridSize).fill(0);
+  cellsSave = new Array(gridSize * gridSize).fill(0);
 };
 
 const regenerate = () => {
-  const newCells = cellSave.map((cell, i) =>
-    isAlive(cell, countNeighbors(cellSave, i))
+  cellsNew = cellsSave.map((cell, i) =>
+    isAlive(cell, countNeighbors(cellsSave, i))
   );
+  updateLive();
+  cellsSave = cellsNew;
+
+  let newCRC = crc32(cellsNew);
+  stable = cellsCRC.indexOf(newCRC) > -1;
+  if (cellsCRC.push(newCRC) > maxCRC) cellsCRC.shift();
+
   if (!resetPending && getAuto()) {
-    stable = cellsEqual(newCells, oldCells);
-    oldCells = cellSave;
-    cellSave = newCells;
     if (stable) {
       resetPending = true;
       setTimeout(() => {
@@ -39,14 +45,36 @@ const regenerate = () => {
       }, 500);
     }
   }
-  updateLive();
   generations++;
   // console.log((Date.now() - startTime) / generations);
 };
 
-const cellsEqual = (cells1, cells2) =>
-  cells1.length === cells2.length &&
-  cells1.every((val, index) => val === cells2[index]);
+const makeCRCTable = function () {
+  let c;
+  let crcTable = [];
+  for (let n = 0; n < 256; n++) {
+    c = n;
+    for (let k = 0; k < 8; k++) {
+      c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    }
+    crcTable[n] = c;
+  }
+  return crcTable;
+};
+
+const crc32 = function (cells) {
+  let crc = 0 ^ -1;
+
+  for (let i = 0; i < cells.length; i++) {
+    crc = (crc >>> 8) ^ crcTable[(crc ^ cells[i]) & 0xff];
+  }
+
+  return (crc ^ -1) >>> 0;
+};
+
+// const cellsEqual = (cells1, cells2) =>
+//   cells1.length === cells2.length &&
+//   cells1.every((val, index) => val === cells2[index]);
 
 const countNeighbors = (cells, cell) =>
   getWrap()
@@ -117,7 +145,7 @@ const drawGrid = () => {
   const grid = document.getElementById('grid');
   const container = createElement('container');
   let row;
-  cellSave.forEach((cell, i) => {
+  cellsSave.forEach((cell, i) => {
     if (i % gridSize === 0) {
       row = createElement('row');
       container.appendChild(row);
@@ -132,8 +160,8 @@ const drawGrid = () => {
 };
 
 const updateLive = () => {
-  cellSave.forEach((newCell, i) => {
-    if (newCell !== oldCells[i]) {
+  cellsNew.forEach((newCell, i) => {
+    if (newCell !== cellsSave[i]) {
       document.getElementById(i).classList.toggle('live');
     }
   });
@@ -143,8 +171,8 @@ const attachGridEventHandler = () => {
   document.getElementById('grid').addEventListener('click', event => {
     event.target.classList.toggle('live');
     const cell = +event.target.id;
-    cellSave[cell] = 1 - cellSave[cell];
-    // console.log(cellSave);
+    cellsSave[cell] = 1 - cellsSave[cell];
+    // console.log(cellsSave);
   });
 };
 
@@ -175,7 +203,7 @@ const clear = () => {
 const random = () => {
   resetPending = false;
   //fill grid with 20% live cells
-  cellSave = cellSave.map(x => (Math.random() < 0.2 ? 1 : 0));
+  cellsSave = cellsSave.map(x => (Math.random() < 0.2 ? 1 : 0));
   drawGrid();
 };
 
@@ -245,6 +273,7 @@ const attachSizeEventHandler = () => {
 };
 
 const init = () => {
+  crcTable = makeCRCTable();
   generate(70);
   drawGrid();
   attachGridEventHandler();
