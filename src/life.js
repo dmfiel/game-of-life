@@ -7,16 +7,16 @@ let cellsCRC = []; // hold CRCs for previous states to check for static patterns
 let maxCRC = 8; // how many past generations to watch for repetition
 let stable = false; // pattern is stable (or flipping between a few states)
 let startTime, generations; // used to compute refresh time
-let speed = 10; // pause time between generations
-let resetPending = false;
-let crcTable;
+let speed = 10; // pause time in ms between generations
+let resetPending = false; // when an automatic reset is triggered, the system continues for a second, so that the refresh isn't as abrupt
+let crcTable; // holds some pre-computed data for the CRC32 generation
 
-const startButton = document.getElementById('start');
-const clearButton = document.getElementById('clear');
-const randomButton = document.getElementById('random');
-const setupButton = document.getElementById('setup');
-const speedInput = document.getElementById('speed');
-const gridSizeInput = document.getElementById('gridSize');
+const buttonStart = document.getElementById('start');
+const buttonClear = document.getElementById('clear');
+const buttonRandom = document.getElementById('random');
+const buttonSetup = document.getElementById('setup');
+const inputSpeed = document.getElementById('speed');
+const inputGridSize = document.getElementById('gridSize');
 const optionBlock = document.querySelector('.optionblock');
 const optionWrap = document.getElementById('wrap');
 const optionAuto = document.getElementById('auto');
@@ -24,42 +24,46 @@ const optionAuto = document.getElementById('auto');
 const getWrap = () => optionWrap.checked;
 const getAuto = () => optionAuto.checked;
 
-const isAlive = (cell, neighbors) =>
-  neighbors === 3 || (Boolean(cell) && neighbors === 2) ? 1 : 0;
-
+// clear out the whole grid
 const generate = () => {
   cellsSave.fill(0);
 };
 
+// a cell is created if it has three neighbors, a cell lives if it has two or three neighbors
+const isAlive = (cell, neighbors) =>
+  neighbors === 3 || (Boolean(cell) && neighbors === 2) ? 1 : 0;
+
+// calculate and display the next generation of cells
 const regenerate = () => {
-  console.log(cellsSave);
-  for (let i = 0; i < gridSize ** 2; i++) {
-    let nc = countNeighbors(cellsSave, i);
-    let ia = isAlive(cellsSave[i], nc);
-    cellsNew[i] = ia;
-    // cellsNew[i] = isAlive(cellsSave[i], countNeighbors(cellsSave, i));
+  if (getWrap()) {
+    for (let i = 0; i < gridSize ** 2; i++)
+      cellsNew[i] = isAlive(cellsSave[i], countNeighborsWrap(cellsSave, i));
+  } else {
+    for (let i = 0; i < gridSize ** 2; i++)
+      cellsNew[i] = isAlive(cellsSave[i], countNeighborsNoWrap(cellsSave, i));
   }
+
   updateLive();
-  // cellsSave = cellsNew;
-  for (let i = 0; i < gridSize ** 2; i++) {
-    cellsSave[i] = cellsNew[i];
-  }
+  cellsSave = cellsNew.slice(); // copy the cells
+
+  // check to see if we have a stable, repeating pattern
   let newCRC = crc32(cellsNew);
   stable = cellsCRC.indexOf(newCRC) > -1;
   if (cellsCRC.push(newCRC) > maxCRC) cellsCRC.shift();
 
   if (!resetPending && getAuto()) {
     if (stable) {
-      resetPending = true;
+      resetPending = true; // resetPending keeps us from setting multiple reset timeouts
       setTimeout(() => {
         random();
-      }, 500);
+      }, 500); // keep running for 500ms when we have reached a stable state
     }
   }
   generations++;
   // console.log((Date.now() - startTime) / generations);
 };
 
+// setup the pre-work for our CRC32 checksums
 const makeCRCTable = function () {
   let c;
   let crcTable = [];
@@ -73,6 +77,7 @@ const makeCRCTable = function () {
   return crcTable;
 };
 
+// calculate a CRC32 checksum on our cells to see if we have a repeating pattern
 const crc32 = function (cells) {
   let crc = 0 ^ -1;
 
@@ -82,11 +87,6 @@ const crc32 = function (cells) {
 
   return (crc ^ -1) >>> 0;
 };
-
-const countNeighbors = (cells, cell) =>
-  getWrap()
-    ? countNeighborsWrap(cells, cell)
-    : countNeighborsNoWrap(cells, cell);
 
 const countCellWrap = (cells, gridSize, row, col) => {
   row = (row + gridSize) % gridSize;
@@ -137,7 +137,6 @@ const countNeighborsNoWrap = (cells, cell) => {
     // count bottom right cell when not on bottom edge
     if (cell < gridSize * (gridSize - 1)) count += cells[cell + 1 + gridSize];
   }
-  // console.log(cells, cell, count);
   return count;
 };
 
@@ -148,7 +147,6 @@ const createElement = className => {
 };
 
 const drawGrid = () => {
-  const grid = document.getElementById('grid');
   const container = createElement('container');
   let row, cell;
   for (let i = 0; i < gridSize ** 2; i++) {
@@ -163,10 +161,12 @@ const drawGrid = () => {
     row.appendChild(cellEl);
   }
 
+  const grid = document.getElementById('grid');
   grid.innerHTML = '';
   grid.appendChild(container);
 };
 
+// update the live status of any changed cells
 const updateLive = () => {
   for (let i = 0; i < gridSize ** 2; i++) {
     if (cellsNew[i] !== cellsSave[i]) {
@@ -187,25 +187,27 @@ const attachGridEventHandler = () => {
 let timer;
 
 const start = () => {
-  if (startButton.textContent === 'Start') {
+  if (buttonStart.textContent === 'Start') {
     startTime = Date.now();
     generations = 0;
     timer = setInterval(() => {
       regenerate();
     }, speed);
-    startButton.textContent = 'Stop';
+    buttonStart.textContent = 'Stop';
   } else {
     clearInterval(timer);
-    startButton.textContent = 'Start';
+    buttonStart.textContent = 'Start';
   }
 };
 
 const clear = () => {
   console.log('clear');
   clearInterval(timer);
-  startButton.textContent = 'Start';
-  generate(70);
+  buttonStart.textContent = 'Start';
+  generate();
   drawGrid();
+  startTime = Date.now();
+  generations = 0;
 };
 
 const random = () => {
@@ -216,8 +218,7 @@ const random = () => {
 };
 
 const getSpeed = () => {
-  console.log('getSpeed');
-  let rawSpeed = speedInput.value;
+  let rawSpeed = inputSpeed.value;
   if (!rawSpeed) rawSpeed = 10;
   rawSpeed = Math.floor(Math.abs(rawSpeed));
   if (rawSpeed < 1) rawSpeed = 1;
@@ -225,15 +226,14 @@ const getSpeed = () => {
   if (rawSpeed !== speed) {
     speed = rawSpeed;
   }
-  if (speedInput.value != speed) {
-    speedInput.value = speed;
+  if (inputSpeed.value != speed) {
+    inputSpeed.value = speed;
   }
   return speed;
 };
 
 const getGridSize = () => {
-  console.log('getGridSize');
-  let rawSize = gridSizeInput.value;
+  let rawSize = inputGridSize.value;
   if (!rawSize) return;
   rawSize = Math.floor(Math.abs(rawSize));
   if (rawSize < 10) return;
@@ -244,49 +244,49 @@ const getGridSize = () => {
     generate();
     drawGrid();
   }
-  if (gridSizeInput.value != gridSize) {
-    gridSizeInput.value = gridSize;
+  if (inputGridSize.value != gridSize) {
+    inputGridSize.value = gridSize;
   }
   return gridSize;
 };
 
 const attachStartEventHandler = () => {
-  startButton.addEventListener('click', start);
+  buttonStart.addEventListener('click', start);
 };
 
 const attachClearEventHandler = () => {
-  clearButton.addEventListener('click', clear);
+  buttonClear.addEventListener('click', clear);
 };
 
 const attachRandomEventHandler = () => {
-  randomButton.addEventListener('click', random);
+  buttonRandom.addEventListener('click', random);
 };
 
 const attachSetupEventHandler = () => {
-  setupButton.addEventListener('click', () =>
+  buttonSetup.addEventListener('click', () =>
     optionBlock.classList.toggle('hidden')
   );
 };
 
 const attachSpeedEventHandler = () => {
-  speedInput.addEventListener('change', getSpeed);
-  speedInput.addEventListener('onchange', getSpeed);
-  speedInput.addEventListener('input', getSpeed);
-  speedInput.addEventListener('onkeydown', getSpeed);
-  speedInput.addEventListener('onpaste', getSpeed);
+  inputSpeed.addEventListener('change', getSpeed);
+  inputSpeed.addEventListener('onchange', getSpeed);
+  inputSpeed.addEventListener('input', getSpeed);
+  inputSpeed.addEventListener('onkeydown', getSpeed);
+  inputSpeed.addEventListener('onpaste', getSpeed);
 };
 
 const attachSizeEventHandler = () => {
-  gridSizeInput.addEventListener('change', getGridSize);
-  gridSizeInput.addEventListener('onchange', getGridSize);
-  gridSizeInput.addEventListener('input', getGridSize);
-  gridSizeInput.addEventListener('onkeydown', getGridSize);
-  gridSizeInput.addEventListener('onpaste', getGridSize);
+  inputGridSize.addEventListener('change', getGridSize);
+  inputGridSize.addEventListener('onchange', getGridSize);
+  inputGridSize.addEventListener('input', getGridSize);
+  inputGridSize.addEventListener('onkeydown', getGridSize);
+  inputGridSize.addEventListener('onpaste', getGridSize);
 };
 
 const init = () => {
   crcTable = makeCRCTable();
-  generate(70);
+  generate();
   drawGrid();
   attachGridEventHandler();
   attachStartEventHandler();
@@ -296,14 +296,5 @@ const init = () => {
   attachSpeedEventHandler();
   attachSizeEventHandler();
 };
-init();
 
-window.game = {
-  isAlive,
-  generate,
-  regenerate,
-  countNeighbors,
-  drawGrid,
-  attachGridEventHandler,
-  start
-};
+init();
