@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <title>Game of Life - David Fiel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="utf-8" />
     <link rel="apple-touch-icon" sizes="180x180" href="./img/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="./img/favicon-32x32.png">
@@ -23,9 +24,13 @@
           <button id="setup">Setup</button>
         </div>
         <div class="optionblock hidden">
-          <div class="input">
-            <input type="width" id='gridSize' step=10 style="width: 40px" value="50" />
-            <label for="gridSize" class="option">Size (10-200)</label>
+          
+          <div class="input-fps">
+            <div class="input">
+              <input type="width" id='gridSize' step=10 style="width: 40px" value="50" />
+              <label for="gridSize" class="option">Size (10-200)</label>
+            </div>
+            <div class='fps'><span id="fps"></span> FPS</div>
           </div>
           <div class="input">
             <input type="number" id='speed' step=10 style="width: 40px" value="10" />
@@ -58,9 +63,9 @@
         </li>
       </ul>
       <p>
-        Click on a cell to toggle it between live and dead. <br />
-        The random button will fill the grid with 20% live cells. <br />
-        The wrap checkbox determines whether cells at the edge have neighbors on the other side of the grid. <br />
+        Click on a cell to toggle it between live and dead. 
+        The random button will fill the grid with 20% live cells. 
+        The wrap checkbox determines whether cells at the edge have neighbors on the other side of the grid. 
         The auto checkbox will automatically do a random fill when the cells are stable or just flipping between two states.
       </p>
     </footer>

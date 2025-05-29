@@ -20,9 +20,19 @@ const inputGridSize = document.getElementById('gridSize');
 const optionBlock = document.querySelector('.optionblock');
 const optionWrap = document.getElementById('wrap');
 const optionAuto = document.getElementById('auto');
+const showFPS = document.getElementById('fps');
 
 const getWrap = () => optionWrap.checked;
 const getAuto = () => optionAuto.checked;
+
+// calculate how big our default grid should be based on screen size, min 10, max 50
+const getDefaultSize = () => {
+  let heightMax = Math.floor((window.screen.height - 230) / 12);
+  let widthMax = Math.floor((window.screen.width - 20) / 12);
+  gridSize = Math.max(10, Math.min(50, heightMax, widthMax));
+  inputGridSize.value = gridSize;
+  return gridSize;
+};
 
 // clear out the whole grid
 const generate = () => {
@@ -60,7 +70,9 @@ const regenerate = () => {
     }
   }
   generations++;
-  // console.log((Date.now() - startTime) / generations);
+  showFPS.innerText = ((generations * 1000) / (Date.now() - startTime)).toFixed(
+    1
+  );
 };
 
 // setup the pre-work for our CRC32 checksums
@@ -226,9 +238,11 @@ const getSpeed = () => {
   if (rawSpeed !== speed) {
     speed = rawSpeed;
   }
-  if (inputSpeed.value != speed) {
-    inputSpeed.value = speed;
-  }
+
+  inputSpeed.value = speed;
+  start();
+  start();
+
   return speed;
 };
 
@@ -287,6 +301,7 @@ const attachSizeEventHandler = () => {
 const init = () => {
   crcTable = makeCRCTable();
   generate();
+  getDefaultSize();
   drawGrid();
   attachGridEventHandler();
   attachStartEventHandler();
