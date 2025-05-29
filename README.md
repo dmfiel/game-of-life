@@ -44,7 +44,7 @@ A 15x15 grid with a glider and two flippers that will run continously
 
 ### What I learned
 
-The biggest challenge with this program were browser limitations. The original version crashed the browser after an extended run, due to increasing tab memory usage. I was able to refactor the code to minimize DOM update by only toggling a 'live' class to show the live/dead cells instead of re-building the elements of the grid.
+The biggest challenges with this program were browser limitations. The original version crashed the browser after an extended run, due to increasing tab memory usage. I was able to refactor the code to minimize DOM update by only toggling a 'live' class to show the live/dead cells instead of re-building the elements of the grid.
 
 ### Useful resources
 
